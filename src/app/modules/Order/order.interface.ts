@@ -14,14 +14,24 @@ export type TStatusHistory = {
 export type TOrder = {
   buyer: Types.ObjectId;
   items: TOrderedItem[];
+  subtotal: number;
+  deliveryFee: number;
   totalPrice: number;
+  deliveryLocation: 'inside_dhaka' | 'outside_dhaka';
+  shippingAddress: string;
   status:
     | 'Pending Approval'
     | 'Processing'
     | 'Out for Delivery'
     | 'Completed'
     | 'Cancelled';
-  paymentMethod: 'COD' | 'Bkash';
-  shippingAddress: string;
+  paymentMethod: 'COD' | 'SSLCommerz';
+  paymentStatus: 'pending' | 'completed' | 'failed';
+  transactionId?: string;
   statusHistory: TStatusHistory[];
+};
+
+export type TCreateCOD = {
+  deliveryLocation: 'inside_dhaka' | 'outside_dhaka';
+  shippingAddress: string;
 };

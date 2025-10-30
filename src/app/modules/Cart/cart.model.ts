@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 import { TCart, TCartItem } from './cart.interface';
 
 // Schema for a single cart item
-const cartItemSchema = new Schema<TCartItem>({
+export const cartItemSchema = new Schema<TCartItem>({
   product: {
     type: Schema.Types.ObjectId,
     ref: 'Product',

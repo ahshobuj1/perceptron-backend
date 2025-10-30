@@ -1,50 +1,125 @@
 import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
-import { TOrder } from './order.interface';
+import { TCreateCOD, TOrder, TOrderedItem } from './order.interface';
 import { UserModel } from '../Auth/auth.model';
 import { AppError } from '../../errors/AppError';
 import { ProductModel } from '../Product/product.model';
 import { OrderModel } from './order.model';
+import { CartModel } from '../Cart/cart.model';
+import { TCartItem } from '../Cart/cart.interface';
+import { clearCart, DELIVERY_FEES, updateStock } from './order.utils';
+import { TPayment } from '../Payment/payment.interface';
+import { TProduct } from '../Product/product.interface';
+import { Types } from 'mongoose';
 
-const createOrder = async (user: JwtPayload, payload: TOrder) => {
-  // Find the buyer
+// 1. Order with COD -> Cash on delivery
+const createOrderCOD = async (user: JwtPayload, payload: TCreateCOD) => {
   const buyer = await UserModel.findOne({ email: user.email, role: 'buyer' });
   if (!buyer) {
     throw new AppError(httpStatus.NOT_FOUND, 'Buyer account not found!');
   }
 
-  // Check product stock before creating order
-  for (const item of payload.items) {
+  const cart = await CartModel.findOne({ user: buyer._id });
+  if (!cart || cart.items.length === 0) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Cart is empty!');
+  }
+
+  // Check stock
+  for (const item of cart.items) {
     const product = await ProductModel.findById(item.product);
-    if (!product) {
-      throw new AppError(
-        httpStatus.NOT_FOUND,
-        `Product not found: ${item.product}`,
-      );
-    }
-    if (product.stock < item.quantity) {
+    if (!product || product.stock < item.quantity) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
-        `Not enough stock for ${product.name}. Available: ${product.stock}`,
+        `Not enough stock for ${product?.name}. Available: ${product?.stock}`,
       );
     }
   }
 
-  // Create the order
-  const orderData = {
-    ...payload,
+  const subtotal = cart.totalPrice || 0;
+  const deliveryFee = DELIVERY_FEES[payload.deliveryLocation];
+  const finalTotalPrice = subtotal + deliveryFee;
+
+  const orderedItems: TOrderedItem[] = cart.items.map((item) => {
+    return {
+      product: item.product as Types.ObjectId,
+      quantity: item.quantity,
+    };
+  });
+
+  // Create the Order
+  const orderPayload: Partial<TOrder> = {
     buyer: buyer._id,
+    items: orderedItems,
+    subtotal: subtotal,
+    deliveryFee: deliveryFee,
+    totalPrice: finalTotalPrice,
+    shippingAddress: payload.shippingAddress,
+    deliveryLocation: payload.deliveryLocation,
+    paymentMethod: 'COD',
+    paymentStatus: 'pending',
+    status: 'Pending Approval', // Pending Approval -> It means seller will see the order
   };
-  const result = await OrderModel.create(orderData);
 
-  // After order creation, update stock for each product (decrement)
-  for (const item of payload.items) {
-    await ProductModel.findByIdAndUpdate(item.product, {
-      $inc: { stock: -item.quantity },
-    });
-  }
+  const newOrder = await OrderModel.create(orderPayload);
 
-  return result;
+  // Update Stock
+  await updateStock(cart.items as TCartItem[]);
+
+  // Clear Cart
+  await clearCart(buyer._id);
+
+  return newOrder;
+};
+
+// 2. For SSLCommerz payment service - called from payment.service.ts
+const createOrderFromPayment = async (payment: TPayment) => {
+  // Payment is already verified, just create the order
+
+  const orderedItems: TOrderedItem[] = payment.items.map((item) => {
+    let productId: Types.ObjectId;
+
+    if (typeof item.product === 'object' && (item.product as TProduct).name) {
+      const productDoc = item.product as TProduct;
+
+      if (!productDoc._id) {
+        throw new AppError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          'Populated product is missing _id.',
+        );
+      }
+      productId = productDoc._id;
+    } else {
+      productId = item.product as Types.ObjectId;
+    }
+
+    return {
+      product: productId,
+      quantity: item.quantity,
+    };
+  });
+
+  const orderPayload: Partial<TOrder> = {
+    buyer: payment.user,
+    items: orderedItems,
+    subtotal: payment.amount - DELIVERY_FEES[payment.deliveryLocation],
+    deliveryFee: DELIVERY_FEES[payment.deliveryLocation],
+    totalPrice: payment.amount,
+    shippingAddress: payment.shippingAddress,
+    deliveryLocation: payment.deliveryLocation,
+    paymentMethod: 'SSLCommerz',
+    paymentStatus: 'completed',
+    status: 'Pending Approval', // Ready for seller
+    transactionId: payment.transactionId,
+  };
+
+  const newOrder = await OrderModel.create(orderPayload);
+
+  // Update Stock (Cart items already saved in payment doc)
+  await updateStock(payment.items);
+
+  // Cart will be cleared by payment.service after this function returns
+
+  return newOrder;
 };
 
 const getMyOrders = async (user: JwtPayload) => {
@@ -136,9 +211,59 @@ const updateOrderStatus = async (
 };
 
 export const orderServices = {
-  createOrder,
+  createOrderCOD,
+  createOrderFromPayment,
   getMyOrders,
   getSellerOrders,
   getAllOrders,
   updateOrderStatus,
 };
+
+// const createOrder = async (user: JwtPayload, payload: TOrder) => {
+//   // Find the buyer
+//   const buyer = await UserModel.findOne({ email: user.email, role: 'buyer' });
+//   if (!buyer) {
+//     throw new AppError(httpStatus.NOT_FOUND, 'Buyer account not found!');
+//   }
+
+//   // Check product stock before creating order
+//   for (const item of payload.items) {
+//     const product = await ProductModel.findById(item.product);
+//     if (!product) {
+//       throw new AppError(
+//         httpStatus.NOT_FOUND,
+//         `Product not found: ${item.product}`,
+//       );
+//     }
+//     if (product.stock < item.quantity) {
+//       throw new AppError(
+//         httpStatus.BAD_REQUEST,
+//         `Not enough stock for ${product.name}. Available: ${product.stock}`,
+//       );
+//     }
+//   }
+
+//   // Create the order
+//   const orderData = {
+//     ...payload,
+//     buyer: buyer._id,
+//   };
+//   const result = await OrderModel.create(orderData);
+
+//   // After order creation, update stock for each product (decrement)
+//   for (const item of payload.items) {
+//     await ProductModel.findByIdAndUpdate(item.product, {
+//       $inc: { stock: -item.quantity },
+//     });
+//   }
+
+//   //  Clear cart data after order and payment successful
+//   await CartModel.findOneAndUpdate(
+//     { user: buyer._id },
+//     {
+//       $set: { items: [], totalPrice: 0 },
+//     },
+//   );
+
+//   return result;
+// };

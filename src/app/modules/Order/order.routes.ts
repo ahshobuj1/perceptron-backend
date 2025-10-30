@@ -7,12 +7,12 @@ import { orderValidations } from './order.validations';
 
 const router = Router();
 
-// Buyer: Create a new order
+// Create orders with cash on delivery
 router.post(
-  '/create-order',
+  '/create-order-cod',
   auth(UserRole.buyer),
-  validationChecker(orderValidations.create),
-  orderController.createOrder,
+  validationChecker(orderValidations.createOrder),
+  orderController.createOrderCOD,
 );
 
 // Buyer: Get my orders

@@ -2,10 +2,10 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { orderServices } from './order.service';
 
-const createOrder = catchAsync(async (req, res) => {
-  const result = await orderServices.createOrder(req.user, req.body);
+const createOrderCOD = catchAsync(async (req, res) => {
+  const result = await orderServices.createOrderCOD(req.user, req.body);
   sendResponse(res, {
-    message: 'Order created successfully!',
+    message: 'Order placed successfully (COD)!',
     result: result,
   });
 });
@@ -46,7 +46,7 @@ const updateOrderStatus = catchAsync(async (req, res) => {
 });
 
 export const orderController = {
-  createOrder,
+  createOrderCOD,
   getMyOrders,
   getSellerOrders,
   getAllOrders,

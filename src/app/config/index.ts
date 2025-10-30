@@ -21,4 +21,13 @@ export default {
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   super_admin_pass: process.env.SUPER_ADMIN_PASS,
   redis_url: process.env.REDIS_URL,
+
+  ssl_store_id: process.env.SSL_STORE_ID,
+  ssl_store_password: process.env.SSL_STORE_PASSWORD,
+  is_live: process.env.NODE_ENV === 'production',
+
+  ssl_success_url: process.env.SSL_SUCCESS_URL,
+  ssl_fail_url: process.env.SSL_FAIL_URL,
+  ssl_cancel_url: process.env.SSL_CANCEL_URL,
+  ssl_ipn_url: process.env.SSL_IPN_URL,
 };

@@ -17,6 +17,7 @@ export type TReview = {
 
 // Main interface for the Product
 export type TProduct = {
+  _id?: Types.ObjectId;
   name: string;
   description: string;
   category: string;
