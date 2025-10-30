@@ -30,4 +30,11 @@ router.delete(
   productController.deleteProduct,
 );
 
+router.post(
+  '/:id/reviews',
+  auth(UserRole.buyer),
+  validationChecker(productValidations.createReview),
+  productController.createReview,
+);
+
 export const productRoutes = router;

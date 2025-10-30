@@ -36,7 +36,16 @@ const update = z.object({
   video: videoValidationSchema.optional(),
 });
 
+const createReview = z.object({
+  rating: z
+    .number()
+    .min(1, 'Rating must be between 1-5')
+    .max(5, 'Rating must be between 1-5'),
+  comment: z.string().min(1, 'Comment is required'),
+});
+
 export const productValidations = {
   create,
   update,
+  createReview, // Ei line-ti add korun
 };

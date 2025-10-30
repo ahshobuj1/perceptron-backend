@@ -50,10 +50,21 @@ const deleteProduct = catchAsync(async (req, res) => {
   });
 });
 
+const createReview = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await productServices.createReview(id, req.body, req.user);
+
+  sendResponse(res, {
+    message: 'Review added successfully!',
+    result: result,
+  });
+});
+
 export const productController = {
   createProduct,
   getAllProducts,
   getSingleProduct,
   updateProduct,
   deleteProduct,
+  createReview,
 };

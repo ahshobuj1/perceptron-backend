@@ -1,10 +1,11 @@
 import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import { AppError } from '../../errors/AppError';
-import { TProduct } from './product.interface';
+import { TProduct, TReview } from './product.interface';
 import { ProductModel } from './product.model';
 import { UserModel } from '../Auth/auth.model';
 import { UserRole } from '../Auth/auth.interface';
+import { OrderModel } from '../Order/order.model';
 
 // Service to create a new product
 const createProduct = async (payload: TProduct, user: JwtPayload) => {
@@ -29,7 +30,6 @@ const createProduct = async (payload: TProduct, user: JwtPayload) => {
   return result;
 };
 
-// Service to get all products
 const getAllProducts = async () => {
   const result = await ProductModel.find({ isDeleted: false }).populate(
     'seller',
@@ -38,7 +38,6 @@ const getAllProducts = async () => {
   return result;
 };
 
-// Service to get a single product
 const getSingleProduct = async (id: string) => {
   const result = await ProductModel.findOne({
     _id: id,
@@ -51,7 +50,6 @@ const getSingleProduct = async (id: string) => {
   return result;
 };
 
-// Service to update a product
 const updateProduct = async (
   id: string,
   payload: Partial<TProduct>,
@@ -119,10 +117,76 @@ const deleteProduct = async (id: string, user: JwtPayload) => {
   return result;
 };
 
+const createReview = async (
+  productId: string,
+  payload: TReview,
+  user: JwtPayload,
+) => {
+  // Find the buyer
+  const buyer = await UserModel.findOne({ email: user.email, role: 'buyer' });
+  if (!buyer) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Buyer account not found!');
+  }
+
+  // Find the product
+  const product = await ProductModel.findById(productId);
+  if (!product) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Product not found!');
+  }
+
+  // Check if the user has purchased this product and the order is completed
+  const hasPurchased = await OrderModel.findOne({
+    buyer: buyer._id,
+    'items.product': productId,
+    status: 'Completed',
+  });
+
+  if (!hasPurchased) {
+    throw new AppError(
+      httpStatus.UNAUTHORIZED,
+      'You must purchase this product to leave a review.',
+    );
+  }
+
+  // Check if the user has already reviewed this product
+  const alreadyReviewed = product.reviews?.find(
+    (review) => review.user.toString() === buyer._id.toString(),
+  );
+
+  if (alreadyReviewed) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'You have already reviewed this product.',
+    );
+  }
+
+  // Add the review
+  const reviewData = {
+    ...payload,
+    user: buyer._id,
+  };
+
+  product.reviews = product.reviews || []; // Ensure reviews array exists
+  product.reviews.push(reviewData as TReview); // Add new review
+
+  // Recalculate average rating
+  const totalRating = product.reviews.reduce(
+    (acc, item) => acc + item.rating,
+    0,
+  );
+  product.ratings = parseFloat(
+    (totalRating / product.reviews.length).toFixed(1),
+  );
+
+  await product.save();
+  return product;
+};
+
 export const productServices = {
   createProduct,
   getAllProducts,
   getSingleProduct,
   updateProduct,
   deleteProduct,
+  createReview,
 };
