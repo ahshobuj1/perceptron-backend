@@ -42,9 +42,19 @@ const changeUserStatus = catchAsync(async (req, res) => {
   });
 });
 
+const updateProfileAvatar = catchAsync(async (req, res) => {
+  const result = await userService.updateProfileAvatar(req.user, req.file);
+
+  sendResponse(res, {
+    message: 'Avatar updated successfully!',
+    result,
+  });
+});
+
 export const userController = {
   getMe,
   changeUserStatus,
   getAllUser,
   updateUser,
+  updateProfileAvatar,
 };

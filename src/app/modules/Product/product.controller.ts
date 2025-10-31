@@ -3,7 +3,10 @@ import sendResponse from '../../utils/sendResponse';
 import { productServices } from './product.service';
 
 const createProduct = catchAsync(async (req, res) => {
-  const result = await productServices.createProduct(req.body, req.user);
+  const payload = req.body;
+  const files = req.files;
+
+  const result = await productServices.createProduct(payload, files, req.user);
 
   sendResponse(res, {
     message: 'Product created successfully!',

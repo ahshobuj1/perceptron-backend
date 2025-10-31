@@ -7,6 +7,7 @@ import { orderRoutes } from '../modules/Order/order.routes';
 import { cartRoutes } from '../modules/Cart/cart.routes';
 import { paymentRoutes } from '../modules/Payment/payment.routes';
 import { dashboardRoutes } from '../modules/Dashboard/dashboard.routes';
+import { categoryRoutes } from '../modules/Caregory/category.route';
 
 const router = Router();
 
@@ -42,6 +43,10 @@ const modulesRoutes = [
   {
     path: '/dashboard',
     route: dashboardRoutes,
+  },
+  {
+    path: '/categories',
+    route: categoryRoutes,
   },
 ];
 

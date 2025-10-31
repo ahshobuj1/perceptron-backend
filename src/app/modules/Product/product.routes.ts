@@ -4,12 +4,21 @@ import auth from '../../middlewares/auth';
 import { UserRole } from '../Auth/auth.interface';
 import { productValidations } from './product.validations';
 import { productController } from './product.controller';
+import { formDataToJSON } from '../../utils/formDataToJSON';
+import { upload } from '../../utils/fileUpload';
 
 const router = Router();
 
 router.post(
   '/create-product',
   auth(UserRole.seller),
+
+  upload.fields([
+    { name: 'images', maxCount: 5 },
+    { name: 'video', maxCount: 1 },
+  ]),
+  formDataToJSON,
+
   validationChecker(productValidations.create),
   productController.createProduct,
 );

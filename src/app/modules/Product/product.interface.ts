@@ -1,10 +1,12 @@
 import { Types } from 'mongoose';
 
 export type TImage = {
+  public_id: string;
   url: string;
 };
 
 export type TVideo = {
+  public_id: string;
   url: string;
 };
 
@@ -15,17 +17,16 @@ export type TReview = {
   commentReplies?: TReview[];
 };
 
-// Main interface for the Product
 export type TProduct = {
   _id?: Types.ObjectId;
   name: string;
   description: string;
-  category: string;
+  category: Types.ObjectId;
   price: number;
   discountPrice?: number;
   discountEndDate?: Date;
-  images?: TImage[];
-  video?: TVideo;
+  images: TImage[];
+  video: TVideo;
   seller: Types.ObjectId;
   stock: number;
   reviews?: TReview[];

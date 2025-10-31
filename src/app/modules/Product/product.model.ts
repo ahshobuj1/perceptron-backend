@@ -1,11 +1,13 @@
 import { model, Schema } from 'mongoose';
-import { TImage, TProduct, TReview, TVideo } from './product.interface';
+import { TImage, TProduct, TReview, TVideo } from './product.interface'; // Import new types
 
 const imageSchema = new Schema<TImage>({
+  public_id: { type: String, required: true },
   url: { type: String, required: true },
 });
 
 const videoSchema = new Schema<TVideo>({
+  public_id: { type: String, required: true },
   url: { type: String, required: true },
 });
 
@@ -17,22 +19,21 @@ const reviewSchema = new Schema<TReview>({
 
 reviewSchema.add({ commentReplies: [reviewSchema] });
 
-// Main product schema
 const productSchema = new Schema<TProduct>(
   {
     name: { type: String, required: true },
-    description: { type: String, required: true },
-    category: { type: String, required: true },
-    price: { type: Number, required: true },
+    images: { type: [imageSchema], required: true },
+    video: { type: videoSchema, required: true },
     discountPrice: { type: Number },
     discountEndDate: { type: Date },
-    images: { type: [imageSchema] },
-    video: { type: videoSchema, required: true },
-    seller: {
+    description: { type: String, required: true },
+    category: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Category',
       required: true,
     },
+    price: { type: Number, required: true },
+    seller: { type: Schema.Types.ObjectId, ref: 'User' },
     stock: { type: Number, required: true, default: 0 },
     reviews: { type: [reviewSchema] },
     ratings: { type: Number, default: 0 },
