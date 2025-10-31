@@ -9,6 +9,7 @@ const orderedItemSchema = new Schema<TOrderedItem>({
     required: true,
   },
   quantity: { type: Number, required: true, min: 1 },
+  price: { type: Number, required: true },
 });
 
 // Schema for status history
@@ -40,13 +41,13 @@ const orderSchema = new Schema<TOrder>(
         'Processing',
         'Out for Delivery',
         'Completed',
-        'Cancelled/Rejected',
+        'Cancelled',
       ],
       default: 'Pending Approval',
     },
     paymentMethod: {
       type: String,
-      enum: ['COD', 'Bkash'],
+      enum: ['COD', 'SSLCommerz'],
       default: 'COD',
     },
     shippingAddress: {

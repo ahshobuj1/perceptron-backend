@@ -1,19 +1,28 @@
 import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
-import { TCreateCOD, TOrder, TOrderedItem } from './order.interface';
+import { TOrder } from './order.interface';
 import { UserModel } from '../Auth/auth.model';
 import { AppError } from '../../errors/AppError';
 import { ProductModel } from '../Product/product.model';
 import { OrderModel } from './order.model';
 import { CartModel } from '../Cart/cart.model';
 import { TCartItem } from '../Cart/cart.interface';
-import { clearCart, DELIVERY_FEES, updateStock } from './order.utils';
+import {
+  clearCart,
+  createOrderedItems,
+  DELIVERY_FEES,
+  updateStock,
+} from './order.utils';
 import { TPayment } from '../Payment/payment.interface';
-import { TProduct } from '../Product/product.interface';
-import { Types } from 'mongoose';
 
-// 1. Order with COD -> Cash on delivery
-const createOrderCOD = async (user: JwtPayload, payload: TCreateCOD) => {
+// For Cash on delivery order
+const createOrderCOD = async (
+  user: JwtPayload,
+  payload: {
+    shippingAddress: string;
+    deliveryLocation: 'inside_dhaka' | 'outside_dhaka';
+  },
+) => {
   const buyer = await UserModel.findOne({ email: user.email, role: 'buyer' });
   if (!buyer) {
     throw new AppError(httpStatus.NOT_FOUND, 'Buyer account not found!');
@@ -39,17 +48,12 @@ const createOrderCOD = async (user: JwtPayload, payload: TCreateCOD) => {
   const deliveryFee = DELIVERY_FEES[payload.deliveryLocation];
   const finalTotalPrice = subtotal + deliveryFee;
 
-  const orderedItems: TOrderedItem[] = cart.items.map((item) => {
-    return {
-      product: item.product as Types.ObjectId,
-      quantity: item.quantity,
-    };
-  });
+  const orderedItems = await createOrderedItems(cart.items as TCartItem[]);
 
   // Create the Order
   const orderPayload: Partial<TOrder> = {
     buyer: buyer._id,
-    items: orderedItems,
+    items: orderedItems, // <-- Use the new array with prices
     subtotal: subtotal,
     deliveryFee: deliveryFee,
     totalPrice: finalTotalPrice,
@@ -57,7 +61,7 @@ const createOrderCOD = async (user: JwtPayload, payload: TCreateCOD) => {
     deliveryLocation: payload.deliveryLocation,
     paymentMethod: 'COD',
     paymentStatus: 'pending',
-    status: 'Pending Approval', // Pending Approval -> It means seller will see the order
+    status: 'Pending Approval',
   };
 
   const newOrder = await OrderModel.create(orderPayload);
@@ -71,36 +75,13 @@ const createOrderCOD = async (user: JwtPayload, payload: TCreateCOD) => {
   return newOrder;
 };
 
-// 2. For SSLCommerz payment service - called from payment.service.ts
+// 2. For SSLCommerz payment service
 const createOrderFromPayment = async (payment: TPayment) => {
-  // Payment is already verified, just create the order
-
-  const orderedItems: TOrderedItem[] = payment.items.map((item) => {
-    let productId: Types.ObjectId;
-
-    if (typeof item.product === 'object' && (item.product as TProduct).name) {
-      const productDoc = item.product as TProduct;
-
-      if (!productDoc._id) {
-        throw new AppError(
-          httpStatus.INTERNAL_SERVER_ERROR,
-          'Populated product is missing _id.',
-        );
-      }
-      productId = productDoc._id;
-    } else {
-      productId = item.product as Types.ObjectId;
-    }
-
-    return {
-      product: productId,
-      quantity: item.quantity,
-    };
-  });
+  const orderedItems = await createOrderedItems(payment.items as TCartItem[]);
 
   const orderPayload: Partial<TOrder> = {
     buyer: payment.user,
-    items: orderedItems,
+    items: orderedItems, // <-- Use the new array with prices
     subtotal: payment.amount - DELIVERY_FEES[payment.deliveryLocation],
     deliveryFee: DELIVERY_FEES[payment.deliveryLocation],
     totalPrice: payment.amount,
@@ -108,7 +89,7 @@ const createOrderFromPayment = async (payment: TPayment) => {
     deliveryLocation: payment.deliveryLocation,
     paymentMethod: 'SSLCommerz',
     paymentStatus: 'completed',
-    status: 'Pending Approval', // Ready for seller
+    status: 'Pending Approval',
     transactionId: payment.transactionId,
   };
 
