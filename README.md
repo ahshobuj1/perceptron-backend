@@ -7,6 +7,16 @@ The platform supports **multiple user roles (Admin, Seller, Buyer)**, a **comple
 
 ---
 
+### ✅ POSTMAN api collection
+
+```bash
+https://api.postman.com/collections/33498235-4dafd1fd-35e6-45d4-b81d-89567bf01fd2?access_key=PMAT-01K8ZYKP5W3SA5DM0Q5F1K2H53
+```
+
+Open Postman and then import with this link.
+
+---
+
 ## ✨ Core Features
 
 - **Modular Architecture** – Each feature (Auth, Product, Order, etc.) is an independent module.
