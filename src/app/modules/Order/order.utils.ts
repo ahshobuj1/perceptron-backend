@@ -50,36 +50,30 @@ export const getProductPrice = async (
   return product.price;
 };
 
-/**
- * Helper to create the TOrderedItem[] array with price snapshots
- */
 export const createOrderedItems = async (
   items: TCartItem[],
 ): Promise<TOrderedItem[]> => {
   return Promise.all(
     items.map(async (item) => {
-      // 1. Get the product ID, whether it's populated or not
+      //  Get the product ID, whether it's populated or not
       const productId = (item.product as TProduct)._id
         ? (item.product as TProduct)._id
         : (item.product as Types.ObjectId);
 
-      // 2. --- START FIX ---
-      // Add a check to ensure productId is not undefined
       if (!productId) {
         throw new AppError(
           httpStatus.INTERNAL_SERVER_ERROR,
           'Product ID could not be determined during order creation.',
         );
       }
-      // --- END FIX ---
 
-      // 3. Get the price at the time of sale
+      // Get the price at the time of sale
       const price = await getProductPrice(productId);
 
       return {
-        product: productId, // This is now guaranteed to be 'Types.ObjectId'
+        product: productId,
         quantity: item.quantity,
-        price: price, // <-- Save the snapshot price
+        price: price,
       };
     }),
   );

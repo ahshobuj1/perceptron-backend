@@ -20,7 +20,7 @@ export default {
   cloudinary_api_key: process.env.CLOUDINARY_API_KEY,
   cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET,
   super_admin_pass: process.env.SUPER_ADMIN_PASS,
-  redis_url: process.env.REDIS_URL,
+  super_admin_email: process.env.SUPER_ADMIN_EMAIL,
 
   ssl_store_id: process.env.SSL_STORE_ID,
   ssl_store_password: process.env.SSL_STORE_PASSWORD,

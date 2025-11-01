@@ -4,6 +4,7 @@ import { orderServices } from './order.service';
 
 const createOrderCOD = catchAsync(async (req, res) => {
   const result = await orderServices.createOrderCOD(req.user, req.body);
+
   sendResponse(res, {
     message: 'Order placed successfully (COD)!',
     result: result,
