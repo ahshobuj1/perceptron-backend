@@ -44,10 +44,17 @@ const changePassword = z.object({
   newPassword: z.string({ required_error: 'New password is required!' }),
 });
 
+const becomeSeller = z.object({
+  businessName: z.string().min(1, {
+    message: 'Business name is required',
+  }),
+});
+
 export const authValidations = {
   create,
   activateUser,
   login,
   changeStatus,
   changePassword,
+  becomeSeller,
 };

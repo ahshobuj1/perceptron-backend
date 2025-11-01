@@ -5,6 +5,7 @@ import auth from '../../middlewares/auth';
 import { UserRole } from '../Auth/auth.interface';
 import { userValidation } from './user.validation';
 import { upload } from '../../utils/fileUpload';
+import { formDataToJSON } from '../../utils/formDataToJSON';
 
 const router = Router();
 
@@ -40,6 +41,22 @@ router.patch(
 
   upload.single('avatar'),
   userController.updateProfileAvatar,
+);
+
+router.patch(
+  '/:id/update-role',
+  auth(UserRole.super_admin),
+  validationChecker(userValidation.updateRole),
+  userController.updateUserRole,
+);
+
+router.patch(
+  '/become-seller',
+  auth(UserRole.buyer),
+  upload.single('businessLogo'),
+  formDataToJSON,
+  validationChecker(userValidation.becomeSeller),
+  userController.becomeSeller,
 );
 
 export const userRoutes = router;

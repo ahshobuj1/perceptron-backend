@@ -2,6 +2,12 @@ import { model, Schema } from 'mongoose';
 import { TUser } from './auth.interface';
 import bcrypt from 'bcrypt';
 import config from '../../config';
+import { TImage } from '../Product/product.interface';
+
+const imageSchema = new Schema<TImage>({
+  public_id: { type: String, required: true },
+  url: { type: String, required: true },
+});
 
 const userSchema = new Schema<TUser>(
   {
@@ -12,7 +18,7 @@ const userSchema = new Schema<TUser>(
     phone: { type: String },
     address: { type: String },
     businessName: { type: String },
-    businessLogo: { type: String },
+    businessLogo: { type: imageSchema },
     role: {
       type: String,
       enum: ['admin', 'super_admin', 'seller', 'buyer'],

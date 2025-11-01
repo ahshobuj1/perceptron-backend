@@ -14,7 +14,21 @@ const updateProfile = z.object({
   avatar: z.string().optional(),
 });
 
+const updateRole = z.object({
+  role: z.enum(['admin', 'seller', 'buyer'], {
+    required_error: 'A valid role is required (admin, seller, or buyer)',
+  }),
+});
+
+const becomeSeller = z.object({
+  businessName: z.string().min(1, {
+    message: 'Business name is required',
+  }),
+});
+
 export const userValidation = {
   changedStatus,
   updateProfile,
+  becomeSeller,
+  updateRole,
 };

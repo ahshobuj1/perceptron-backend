@@ -51,10 +51,33 @@ const updateProfileAvatar = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserRole = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  const result = await userService.updateUserRole(id, role);
+
+  sendResponse(res, {
+    message: 'User role updated successfully!',
+    result: result,
+  });
+});
+
+const becomeSeller = catchAsync(async (req, res) => {
+  const result = await userService.becomeSeller(req.user, req.body, req.file);
+
+  sendResponse(res, {
+    message: 'Congratulations! You are now a seller.',
+    result: result,
+  });
+});
+
 export const userController = {
   getMe,
   changeUserStatus,
   getAllUser,
   updateUser,
   updateProfileAvatar,
+  becomeSeller,
+  updateUserRole,
 };

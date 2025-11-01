@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { TImage } from '../Product/product.interface';
 
 export type TUser = {
   _id?: Types.ObjectId;
@@ -7,7 +8,7 @@ export type TUser = {
   password: string;
   avatar?: string;
   businessName?: string;
-  businessLogo?: string;
+  businessLogo?: TImage;
   phone: string;
   address: string;
   status: 'in-progress' | 'blocked';
