@@ -1,9 +1,19 @@
 # 🛒 Full-Stack E-commerce Platform (Backend)
 
 This is the complete **backend** for a modern full-stack e-commerce platform.  
-It’s built with a **clean, modular, and scalable architecture** using **Node.js**, **Express**, and **TypeScript**.  
+It’s built with a **clean, modular, and scalable architecture** using **Node.js**, **Express**, and **TypeScript**.
 
 The platform supports **multiple user roles (Admin, Seller, Buyer)**, a **complete order lifecycle with online payments**, and **advanced analytics dashboards**.
+
+---
+
+### ✅ POSTMAN api collection
+
+```bash
+https://api.postman.com/collections/33498235-4dafd1fd-35e6-45d4-b81d-89567bf01fd2?access_key=PMAT-01K8ZYKP5W3SA5DM0Q5F1K2H53
+```
+
+Open Postman and then import with this link.
 
 ---
 
@@ -28,16 +38,16 @@ The platform supports **multiple user roles (Admin, Seller, Buyer)**, a **comple
 
 ## 🛠️ Tech Stack
 
-| Category | Technology |
-|-----------|-------------|
-| **Backend Framework** | Node.js, Express.js |
-| **Language** | TypeScript |
-| **Database** | MongoDB with Mongoose |
-| **Validation** | Zod |
-| **Authentication** | JWT (Access + Refresh Tokens) |
-| **File Uploads** | Multer, Cloudinary |
-| **Payments** | SSLCommerz |
-| **Email Service** | Nodemailer |
+| Category              | Technology                    |
+| --------------------- | ----------------------------- |
+| **Backend Framework** | Node.js, Express.js           |
+| **Language**          | TypeScript                    |
+| **Database**          | MongoDB with Mongoose         |
+| **Validation**        | Zod                           |
+| **Authentication**    | JWT (Access + Refresh Tokens) |
+| **File Uploads**      | Multer, Cloudinary            |
+| **Payments**          | SSLCommerz                    |
+| **Email Service**     | Nodemailer                    |
 
 ---
 
@@ -49,9 +59,9 @@ Follow these steps to get the project running locally for development or testing
 
 Make sure you have the following installed:
 
-- **Node.js** (v18 or later)  
-- **MongoDB** (local or MongoDB Atlas)  
-- **Cloudinary Account** (for file uploads)  
+- **Node.js** (v18 or later)
+- **MongoDB** (local or MongoDB Atlas)
+- **Cloudinary Account** (for file uploads)
 - **SSLCommerz Sandbox Account** (for payment gateway)
 
 ---
